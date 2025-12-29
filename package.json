@@ -12,6 +12,7 @@
     "lint": "expo lint",
     "draft": "npx eas-cli@latest workflow:run create-draft.yml",
     "development-builds": "npx eas-cli@latest workflow:run create-development-builds.yml",
+    "preview-build": "npx eas-cli@latest workflow:run create-preview-build.yml",
     "deploy": "npx eas-cli@latest workflow:run deploy-to-production.yml"
   },
   "dependencies": {

@@ -1,0 +1,10 @@
+name: Create preview build
+
+jobs:
+  ios_preview_build:
+    name: Build iOS Preview
+    type: build
+    params:
+      platform: ios
+      profile: preview
+
