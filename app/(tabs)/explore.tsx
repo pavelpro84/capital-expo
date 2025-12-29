@@ -1,112 +1,218 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import NetInfo from "@react-native-community/netinfo";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { WebView } from "react-native-webview";
 
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+// Simple UUID generator
+function generateUuid(): string {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, function (c) {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
 
-export default function TabTwoScreen() {
+// Generate unsigned JWT
+function generateJwt(email: string): string {
+  const header = {
+    alg: "RS256",
+    typ: "JWT",
+    kid: "demo-cognito-kid-001",
+  };
+
+  const now = Math.floor(Date.now() / 1000);
+  const uuid = generateUuid();
+  const payload = {
+    sub: uuid,
+    email_verified: true,
+    iss: "https://cognito-idp.ap-southeast-2.amazonaws.com/ap-southeast-X",
+    phone_number_verified: false,
+    "cognito:username": uuid,
+    origin_jti: generateUuid(),
+    aud: "x",
+    event_id: generateUuid(),
+    token_use: "id",
+    auth_time: now,
+    phone_number: "+6140x",
+    exp: now + 60 * 60,
+    iat: now,
+    jti: generateUuid(),
+    email,
+  };
+
+  const headerEncoded = btoa(JSON.stringify(header))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  const payloadEncoded = btoa(JSON.stringify(payload))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  const fakeSignature = btoa("fake-rsa256-signature")
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=/g, "");
+
+  return `${headerEncoded}.${payloadEncoded}.${fakeSignature}`;
+}
+
+export default function WebviewScreen() {
+  const [email, setEmail] = useState("");
+  const [token, setToken] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [isOnline, setIsOnline] = useState(true);
+  const webViewRef = useRef<WebView>(null);
+
+  // Check network status on mount and subscribe to changes
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      const online = state.isConnected === true;
+      setIsOnline(online);
+      console.log("[Network] Status:", online ? "online" : "offline");
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const handleLogin = async () => {
+    if (!email) {
+      alert("Vui lòng nhập email");
+      return;
+    }
+
+    // Check network before login
+    const netState = await NetInfo.fetch();
+    if (!netState.isConnected) {
+      Alert.alert("No Connection", "Please connect to internet to login");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const jwt = generateJwt(email);
+      await AsyncStorage.setItem("authToken", jwt);
+      await AsyncStorage.setItem("userEmail", email);
+      setToken(jwt);
+    } catch (error) {
+      alert("Lỗi tạo JWT: " + (error as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
+  const handleWebViewError = () => {
+    console.log("[WebView] Error loading page");
+    if (!isOnline) {
+      Alert.alert(
+        "Offline",
+        "You are offline. The page may not load correctly. Check your connection and try again."
+      );
+    } else {
+      Alert.alert("Error", "Failed to load page. Try refreshing.");
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
+      {token ? (
+        <>
+          {!isOnline && (
+            <View style={styles.offlineBanner}>
+              <Text style={styles.offlineBannerText}>⚠️ You are offline</Text>
+            </View>
+          )}
+          <WebView
+            ref={webViewRef}
+            source={{
+              uri: `https://test.capital.glasshouseventure.studio/api/feed?token=${token}`,
+            }}
+            style={styles.webview}
+            scalesPageToFit={true}
+            originWhitelist={["*"]}
+            cacheMode="LOAD_CACHE_ELSE_NETWORK"
+            cacheEnabled={true}
+            domStorageEnabled={true}
+            javaScriptEnabled={true}
+            onError={handleWebViewError}
+            startInLoadingState={true}
+            renderLoading={() => (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#0000ff" />
+              </View>
+            )}
+          />
+        </>
+      ) : (
+        <View style={styles.form}>
+          <TextInput
+            value={email}
+            onChangeText={setEmail}
+            style={styles.input}
+            placeholder="Enter email"
+            placeholderTextColor="#999"
+            editable={!loading && isOnline}
+          />
+          {!isOnline && (
+            <Text style={styles.offlineText}>
+              Please connect to internet to login
+            </Text>
+          )}
+          <Button
+            title={loading ? "Đang xử lý..." : "Login"}
+            onPress={handleLogin}
+            disabled={loading || !isOnline}
+          />
+          {loading && <ActivityIndicator size="large" color="#0000ff" />}
+        </View>
+      )}
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  container: {
+    flex: 1,
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  webview: {
+    flex: 1,
+  },
+  form: {
+    flex: 1,
+    backgroundColor: "white",
+    padding: 16,
+    gap: 16,
+    justifyContent: "center",
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    padding: 12,
+    borderRadius: 4,
+    fontSize: 16,
+  },
+  offlineBanner: {
+    backgroundColor: "#FFA500",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+  },
+  offlineBannerText: {
+    color: "white",
+    textAlign: "center",
+    fontWeight: "bold",
+  },
+  offlineText: {
+    color: "#FF6B6B",
+    textAlign: "center",
+    fontSize: 14,
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
