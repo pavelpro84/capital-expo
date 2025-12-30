@@ -1,7 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import NetInfo from "@react-native-community/netinfo";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Alert, Button, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Animated, Button, Easing, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 
@@ -67,6 +67,9 @@ export default function WebviewScreen() {
   const [isOnline, setIsOnline] = useState(true);
   const webViewRef = useRef<WebView>(null);
 
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const [webLoading, setWebLoading] = useState(false);
+
   // Check network status on mount and subscribe to changes
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -93,6 +96,8 @@ export default function WebviewScreen() {
 
     setLoading(true);
     try {
+      setWebLoading(true);
+      fadeAnim.setValue(0);
       const jwt = generateJwt(email);
       await AsyncStorage.setItem("authToken", jwt);
       await AsyncStorage.setItem("userEmail", email);
@@ -119,35 +124,7 @@ export default function WebviewScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={["top", "left", "right"]}>
-      {token ? (
-        <>
-          {!isOnline && (
-            <View style={styles.offlineBanner}>
-              <Text style={styles.offlineBannerText}>⚠️ You are offline</Text>
-            </View>
-          )}
-          <WebView
-            ref={webViewRef}
-            source={{
-              uri: `https://test.capital.glasshouseventure.studio/api/feed?token=${token}`,
-            }}
-            style={styles.webview}
-            scalesPageToFit={true}
-            originWhitelist={["*"]}
-            cacheMode="LOAD_CACHE_ELSE_NETWORK"
-            cacheEnabled={true}
-            domStorageEnabled={true}
-            javaScriptEnabled={true}
-            onError={handleWebViewError}
-            startInLoadingState={true}
-            renderLoading={() => (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
-              </View>
-            )}
-          />
-        </>
-      ) : (
+      {!token && (
         <View style={styles.form}>
           <TextInput
             value={email}
@@ -167,7 +144,49 @@ export default function WebviewScreen() {
             onPress={handleLogin}
             disabled={loading || !isOnline}
           />
-          {loading && <ActivityIndicator size="large" color="#0000ff" />}
+          {loading && <ActivityIndicator size="large" color="#000" />}
+        </View>
+      )}
+
+      <Animated.View style={[styles.webviewWrapper, { opacity: fadeAnim }]}>
+        {!isOnline && token && (
+          <View style={styles.offlineBanner}>
+            <Text style={styles.offlineBannerText}>⚠️ You are offline</Text>
+          </View>
+        )}
+
+        <WebView
+          ref={webViewRef}
+          source={
+            token
+              ? { uri: `https://test.capital.glasshouseventure.studio/api/feed?token=${token}` }
+              : { html: "" }
+          }
+          style={styles.webview}
+          containerStyle={styles.webviewContainer}
+          scalesPageToFit
+          originWhitelist={["*"]}
+          cacheMode="LOAD_CACHE_ELSE_NETWORK"
+          cacheEnabled
+          domStorageEnabled
+          javaScriptEnabled
+          onLoadStart={() => setWebLoading(true)}
+          onLoadEnd={() => {
+            setWebLoading(false);
+            Animated.timing(fadeAnim, {
+              toValue: 1,
+              duration: 250,
+              easing: Easing.out(Easing.ease),
+              useNativeDriver: true,
+            }).start();
+          }}
+          onError={handleWebViewError}
+        />
+      </Animated.View>
+
+      {webLoading && (
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#000" />
         </View>
       )}
     </SafeAreaView>
@@ -177,9 +196,25 @@ export default function WebviewScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
   },
   webview: {
     flex: 1,
+    backgroundColor: "#fff",
+  },
+  webviewWrapper: {
+    flex: 1,
+    backgroundColor: "#fff",
+  },
+  webviewContainer: {
+    backgroundColor: "#fff",
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 20,
   },
   form: {
     flex: 1,
