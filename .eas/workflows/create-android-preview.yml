@@ -1,0 +1,10 @@
+name: Create android preview build
+
+jobs:
+  android_preview_build:
+    name: Build Android Preview
+    type: build
+    params:
+      platform: android
+      profile: preview
+
