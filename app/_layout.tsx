@@ -5,10 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import "react-native-get-random-values";
 import "react-native-reanimated";
 
-export const unstable_settings = {
-  anchor: "(tabs)",
-};
-
 export default function RootLayout() {
   const colorScheme = useColorScheme();
 
