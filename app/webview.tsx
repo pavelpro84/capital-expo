@@ -38,7 +38,7 @@ export default function WebviewScreen() {
         <Pressable
           style={[styles.tabItem, url.includes("/prism") && styles.tabActive]}
           onPress={() =>
-            setUrl("https://90f9d4q7-3000.asse.devtunnels.ms/api/prism")
+            setUrl("https://test.capital.glasshouseventure.studio/api/prism")
           }
         >
           <Text style={styles.tabText}>Prism</Text>
@@ -47,7 +47,7 @@ export default function WebviewScreen() {
         <Pressable
           style={[styles.tabItem, url.includes("/feed") && styles.tabActive]}
           onPress={() =>
-            setUrl("https://90f9d4q7-3000.asse.devtunnels.ms/api/feed")
+            setUrl("https://test.capital.glasshouseventure.studio/api/feed")
           }
         >
           <Text style={styles.tabText}>Feed</Text>
