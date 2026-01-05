@@ -30,26 +30,18 @@ export default function WebviewScreen() {
               useNativeDriver: true,
             }).start()
           }
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
         />
       </Animated.View>
 
       {/* Footer Tabs */}
       <View style={styles.footer}>
-        <Pressable
-          style={[styles.tabItem, url.includes("/prism") && styles.tabActive]}
-          onPress={() =>
-            setUrl("https://test.capital.glasshouseventure.studio/api/prism")
-          }
-        >
+        <Pressable style={[styles.tabItem, url.includes("/prism") && styles.tabActive]} onPress={() => setUrl("https://test.capital.glasshouseventure.studio/api/prism")}>
           <Text style={styles.tabText}>Prism</Text>
         </Pressable>
 
-        <Pressable
-          style={[styles.tabItem, url.includes("/feed") && styles.tabActive]}
-          onPress={() =>
-            setUrl("https://test.capital.glasshouseventure.studio/api/feed")
-          }
-        >
+        <Pressable style={[styles.tabItem, url.includes("/feed") && styles.tabActive]} onPress={() => setUrl("https://test.capital.glasshouseventure.studio/api/feed")}>
           <Text style={styles.tabText}>Feed</Text>
         </Pressable>
       </View>
