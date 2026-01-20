@@ -14,6 +14,7 @@
     "development-builds": "npx eas-cli@latest workflow:run create-development-builds.yml",
     "preview-build": "npx eas-cli@latest workflow:run create-preview-build.yml",
     "android-preview-build": "npx eas-cli@latest workflow:run create-android-preview.yml",
+    "testflight": "npx eas-cli@latest workflow:run upload-to-testflight.yml",
     "deploy": "npx eas-cli@latest workflow:run deploy-to-production.yml"
   },
   "dependencies": {

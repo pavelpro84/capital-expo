@@ -1,0 +1,16 @@
+name: Upload to TestFlight
+
+jobs:
+  build_ios:
+    name: Build iOS for TestFlight
+    type: build
+    params:
+      platform: ios
+      profile: production
+  submit_to_testflight:
+    name: Submit to TestFlight
+    needs: [build_ios]
+    type: submit
+    params:
+      build_id: ${{ needs.build_ios.outputs.build_id }}
+      platform: ios
