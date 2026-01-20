@@ -44,6 +44,8 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {}
+    }
   }
 }
