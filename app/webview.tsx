@@ -32,6 +32,8 @@ export default function WebviewScreen() {
           }
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
+          mediaCapturePermissionGrantType="grant"
+          allowsProtectedMedia={true}
         />
       </Animated.View>
 
