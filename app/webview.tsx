@@ -25,7 +25,7 @@ export default function WebviewScreen() {
   const handleNavigationRequest = (request: WebViewNavigation) => {
     const { url: navUrl, navigationType } = request;
     // Allow navigation within the Capital app
-    if (navUrl.includes("test.capital.glasshouseventure.studio")) {
+    if (navUrl.includes("mstaging.capitalbet.com.au")) {
       return true;
     }
     // Intercept explicit user link clicks (including links inside iframes like
@@ -78,18 +78,14 @@ export default function WebviewScreen() {
       <View style={styles.footer}>
         <Pressable
           style={[styles.tabItem, url.includes("/prism") && styles.tabActive]}
-          onPress={() =>
-            setUrl("https://test.capital.glasshouseventure.studio/api/prism")
-          }
+          onPress={() => setUrl("https://mstaging.capitalbet.com.au/api/prism")}
         >
           <Text style={styles.tabText}>Prism</Text>
         </Pressable>
 
         <Pressable
           style={[styles.tabItem, url.includes("/feed") && styles.tabActive]}
-          onPress={() =>
-            setUrl("https://test.capital.glasshouseventure.studio/api/feed")
-          }
+          onPress={() => setUrl("https://mstaging.capitalbet.com.au/api/feed")}
         >
           <Text style={styles.tabText}>Feed</Text>
         </Pressable>

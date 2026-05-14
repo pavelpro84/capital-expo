@@ -9,7 +9,7 @@ type SessionState = {
 
 export const useSessionStore = create<SessionState>((set) => ({
   token: null,
-  url: "https://test.capital.glasshouseventure.studio/api/prism",
+  url: "https://mstaging.capitalbet.com.au/api/prism",
   setToken: (token) => set({ token }),
   setUrl: (url) => set({ url }),
 }));

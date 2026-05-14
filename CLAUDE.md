@@ -58,7 +58,7 @@ _layout.tsx → root Stack navigator (headerless, no animations), ThemeProvider
 ### Key Patterns
 
 - **Authentication**: Login generates a demo JWT (unsigned, RS256 header with fake signature) containing email and Cognito-style claims. Token stored in Zustand + AsyncStorage.
-- **WebView**: Main content is an embedded web app at `test.capital.glasshouseventure.studio`. Token passed as query parameter. Footer tabs switch between `/api/prism` and `/api/feed` endpoints.
+- **WebView**: Main content is an embedded web app at `mstaging.capitalbet.com.au`. Token passed as query parameter. Footer tabs switch between `/api/prism` and `/api/feed` endpoints.
 - **Theming**: Light/dark mode via `useColorScheme`. Colors defined in `constants/theme.ts`. Themed components in `components/themed/`.
 - **Path alias**: `@/*` maps to project root.
 
